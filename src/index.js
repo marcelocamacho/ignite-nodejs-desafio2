@@ -10,19 +10,55 @@ app.use(cors());
 const users = [];
 
 function checksExistsUserAccount(request, response, next) {
-  // Complete aqui
+  const {username} = request.headers;
+  const user = users.find(usr => usr.username == username);
+  if (typeof user == 'undefined'){
+    return response.status(404).json({error: "User not found."});
+  }
+  request.user = user;
+  return next();
+
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
-  // Complete aqui
+  const user = request.user;
+  const nTodos = user.todos.length<10;
+  if(user.pro || nTodos ){
+    return next();
+  } else {
+      return response.status(403).json({error: "Plano free excedido"})
+  }
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const {username} = request.headers;
+  const {id} = request.params
+  const user = users.find(usr => usr.username == username)
+  if(typeof user === 'undefined'){
+    return response.status(404).json({error: "User not found"})
+  }
+
+  if(!validate(id,4)){
+    return response.status(400).json({error: 'ID do To-Do não é valido'})
+  }
+  const todo = user.todos.find(itodo => itodo.id == id)
+  if(typeof todo === 'undefined'){
+    return response.status(404).json({error:'To-Do not found'})
+  }
+  request.user=user;
+  request.todo=todo;
+  return next();
 }
 
 function findUserById(request, response, next) {
-  // Complete aqui
+  const {id} = request.params;
+  const user = users.find(usr => usr.id===id);
+  if(typeof user === 'undefined'){
+    return response.status(404).json({error: "User not found"})
+  }
+  request.user=user;
+  return next();
+
 }
 
 app.post('/users', (request, response) => {
